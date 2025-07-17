@@ -6,9 +6,12 @@ import subprocess
 
 app = Flask(name)
 
-@app.route("/api/metadata", methods=["POST"]) def get_metadata(): url = request.json.get("url") if not url: return jsonify({"error": "URL required"}), 400
-
-try:
+@app.route("/api/metadata", methods=["POST"]) 
+def get_metadata(): url = request.json.get("url") 
+    if not url:
+        return jsonify({"error": "URL required"}), 400
+        
+ try:
     with YoutubeDL({"quiet": True}) as ydl:
         info = ydl.extract_info(url, download=False)
         return jsonify({
