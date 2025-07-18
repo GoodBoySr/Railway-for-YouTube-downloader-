@@ -20,7 +20,8 @@ def get_metadata():
             return jsonify({
                 "title": info.get("title"),
                 "duration": info.get("duration"),
-                "preview_url": f"https://img.youtube.com/vi/{info['id']}/0.jpg"
+                "preview_url": f"https://img.youtube.com/vi/{info['id']}/0.jpg",
+                "channel": info.get("channel") or info.get("uploader") or "unknown"
             })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -42,7 +43,8 @@ def download_video():
         "outtmpl": filepath,
         "format": "bestvideo+bestaudio/best",
         "merge_output_format": "mp4",
-        "quiet": True
+        "quiet": True,
+        "enable_js_engine": True
     }
 
     try:
@@ -50,9 +52,6 @@ def download_video():
             info = ydl.extract_info(url, download=True)
             downloaded_path = ydl.prepare_filename(info)
             final_path = os.path.join(outdir, "video.mp4")
-
-            if not os.path.exists(downloaded_path):
-                raise Exception("Download failed")
 
             if not downloaded_path.endswith(".mp4"):
                 os.rename(downloaded_path, final_path)
@@ -77,7 +76,7 @@ def download_video():
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             return send_file(trimmed, as_attachment=True, download_name=f"{info['title']}_credit.mp4")
 
-        else:  # no_credit
+        else:
             subprocess.run([
                 "ffmpeg", "-y", "-i", final_path, "-t", "600", trimmed
             ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -88,4 +87,3 @@ def download_video():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-                           
